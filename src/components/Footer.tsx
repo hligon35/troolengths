@@ -114,16 +114,16 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-semibold mb-4">Connect With Us</h4>
             <div className="flex space-x-4 mb-6">
-              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors" aria-label="Twitter">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors">
+              <a href="#" className="text-gray-400 hover:text-primary-300 transition-colors" aria-label="YouTube">
                 <Youtube size={20} />
               </a>
             </div>
@@ -136,7 +136,7 @@ const Footer: React.FC = () => {
                 placeholder="Your email"
                 className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <button className="bg-primary-500 hover:bg-primary-600 px-4 py-2 rounded-r-md transition-colors">
+              <button className="bg-primary-500 hover:bg-primary-600 px-4 py-2 rounded-r-md transition-colors" title="Subscribe">
                 <Mail size={16} />
               </button>
             </div>

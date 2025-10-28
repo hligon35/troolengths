@@ -31,6 +31,7 @@ const FloatingPromoButton: React.FC = () => {
         <div className="mb-2 bg-accent-coral text-white p-4 rounded-lg shadow-lg max-w-xs animate-slide-in-right">
           <button 
             onClick={handleClose}
+            title="Close promo"
             className="absolute top-2 right-2 text-white hover:text-gray-200"
           >
             <X size={16} />
@@ -57,6 +58,7 @@ const FloatingPromoButton: React.FC = () => {
       {/* Floating Button */}
       <button
         onClick={handleToggleExpanded}
+        title="Toggle promo"
         className="bg-accent-coral text-white p-3 rounded-full shadow-lg hover:bg-red-500 transition-colors animate-pulse"
       >
         <Tag size={24} />

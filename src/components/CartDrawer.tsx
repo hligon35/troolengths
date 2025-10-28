@@ -32,6 +32,7 @@ const CartDrawer: React.FC = () => {
             <h2 className="text-lg font-semibold">Shopping Cart ({items.length})</h2>
             <button 
               onClick={closeCart}
+              title="Close cart"
               className="p-2 hover:bg-gray-100 rounded-full"
             >
               <X size={20} />
@@ -70,6 +71,7 @@ const CartDrawer: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
+                            title="Decrease quantity"
                             className="p-1 hover:bg-gray-100 rounded"
                           >
                             <Minus size={14} />
@@ -77,6 +79,7 @@ const CartDrawer: React.FC = () => {
                           <span className="text-sm font-medium">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
+                            title="Increase quantity"
                             className="p-1 hover:bg-gray-100 rounded"
                           >
                             <Plus size={14} />
@@ -84,6 +87,7 @@ const CartDrawer: React.FC = () => {
                         </div>
                         <button
                           onClick={() => removeItem(item.productId, item.variantId)}
+                          title="Remove item"
                           className="p-1 hover:bg-gray-100 rounded text-red-500"
                         >
                           <Trash2 size={14} />

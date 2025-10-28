@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Grid, List, SlidersHorizontal, Star, Heart } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
-import { products, filterOptions } from '@/data/mockData';
+import { useCatalog } from '@/hooks/useCatalog';
+import { filterOptions } from '@/data/mockData';
 import { Product } from '@/types';
 import { useCartStore } from '@/store/cartStore';
 
@@ -23,10 +24,12 @@ const CategoryPage: React.FC = () => {
   });
 
   const { addItem } = useCartStore();
+  const { products, loading, error } = useCatalog();
 
   // Filter products based on category and filters
   const filteredProducts = useMemo(() => {
-    let filtered = products.filter(product => 
+    const list = products || [];
+    let filtered = list.filter(product => 
       category === 'all' || product.category === category
     );
 
@@ -74,7 +77,7 @@ const CategoryPage: React.FC = () => {
       default:
         return filtered;
     }
-  }, [category, filters, sortBy]);
+  }, [category, filters, sortBy, products]);
 
   const handleFilterChange = (filterType: FilterKey, value: string) => {
     setFilters(prev => ({
@@ -109,11 +112,13 @@ const CategoryPage: React.FC = () => {
     return (
       <div className="group relative bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
         <div className="relative overflow-hidden rounded-t-lg">
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Link to={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
+            <img
+              src={product.images[0] || '/favicon.svg'}
+              alt={product.name}
+              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
           
           {/* Sale Badge */}
           {product.salePrice && (
@@ -126,6 +131,8 @@ const CategoryPage: React.FC = () => {
           <button
             onClick={() => setIsWishlisted(!isWishlisted)}
             className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all"
+            title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart 
               size={16} 
@@ -145,7 +152,9 @@ const CategoryPage: React.FC = () => {
         </div>
         
         <div className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+          <Link to={`/product/${product.slug}`} className="hover:underline">
+            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+          </Link>
           
           {/* Rating */}
           <div className="flex items-center space-x-1 mb-2">
@@ -200,9 +209,13 @@ const CategoryPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             <CategoryTitle />
           </h1>
-          <p className="text-gray-600">
-            Showing {filteredProducts.length} products
-          </p>
+          {loading ? (
+            <p className="text-gray-600">Loading products…</p>
+          ) : error ? (
+            <p className="text-red-600">Failed to load products. Please try again.</p>
+          ) : (
+            <p className="text-gray-600">Showing {filteredProducts.length} products</p>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -225,6 +238,7 @@ const CategoryPage: React.FC = () => {
                       priceRange: [prev.priceRange[0], parseInt(e.target.value)]
                     }))}
                     className="w-full"
+                    aria-label="Maximum price"
                   />
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>${filters.priceRange[0]}</span>
@@ -296,6 +310,7 @@ const CategoryPage: React.FC = () => {
               <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                 <button
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  title="Toggle filters"
                   className="lg:hidden flex items-center space-x-2 text-gray-600 hover:text-primary-500"
                 >
                   <SlidersHorizontal size={20} />
@@ -305,12 +320,14 @@ const CategoryPage: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setViewMode('grid')}
+                    title="Grid view"
                     className={`p-2 rounded ${viewMode === 'grid' ? 'bg-primary-500 text-white' : 'text-gray-600 hover:text-primary-500'}`}
                   >
                     <Grid size={16} />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
+                    title="List view"
                     className={`p-2 rounded ${viewMode === 'list' ? 'bg-primary-500 text-white' : 'text-gray-600 hover:text-primary-500'}`}
                   >
                     <List size={16} />
@@ -321,6 +338,7 @@ const CategoryPage: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort products"
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="featured">Featured</option>
@@ -337,13 +355,13 @@ const CategoryPage: React.FC = () => {
                 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
                 : 'grid-cols-1'
             }`}>
-              {filteredProducts.map(product => (
+              {(loading ? [] : filteredProducts).map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
 
             {/* No Products Message */}
-            {filteredProducts.length === 0 && (
+            {!loading && filteredProducts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 mb-4">No products found with the selected filters.</p>
                 <button

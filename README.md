@@ -192,11 +192,64 @@ Steps to publish:
 2) In the GitHub repo, go to Settings → Pages
 3) Under “Build and deployment”, set Source = “GitHub Actions”
 4) Wait for the `Deploy to GitHub Pages` workflow to finish (Actions tab)
-5) Open https://hligon35.github.io/troolengths/
+5) Open <https://hligon35.github.io/troolengths/>
 
 Notes:
 - If you change the repository name, update `base` in `vite.config.ts`
 - If you move to a custom domain, remove the `base` or set it to `'/'`
+
+## prodScrubber – Scrape Mayvenn products to JSON
+
+This repository includes a lightweight scraper to collect public product titles, images, and descriptions from Mayvenn’s shop for analysis.
+
+Important:
+
+- Review and comply with the target website’s Terms of Service and robots.txt before scraping.
+- Use reasonable limits and avoid heavy load.
+
+### Run the scraper
+
+```powershell
+# From the project root
+npm run scrub
+
+# Optional environment variables (defaults shown)
+# COLLECTIONS=5 PER_COLLECTION=40 CONCURRENCY=3 npm run scrub
+```
+
+Output location:
+
+- `data/mayvenn-products.json` – a structured JSON file:
+
+```json
+{
+  "source": "https://shop.mayvenn.com",
+  "scrapedAt": "2025-10-28T00:00:00.000Z",
+  "count": 123,
+  "products": [
+    {
+      "url": "https://shop.mayvenn.com/products/...",
+      "handle": "...",
+      "title": "...",
+      "descriptionText": "...",
+      "descriptionHtml": "...",
+      "images": ["https://...", "https://..."],
+      "price": "...",
+      "currency": "USD",
+      "sku": "...",
+      "brand": "Mayvenn",
+      "offers": [ { "price": "...", "priceCurrency": "USD", "availability": "..." } ],
+      "categories": ["Wigs", "Bundles", "..."]
+    }
+  ]
+}
+```
+
+Tuning:
+
+- `COLLECTIONS` – how many collection links from the homepage to crawl
+- `PER_COLLECTION` – maximum product links per collection
+- `CONCURRENCY` – parallel fetches (be polite; default is 3)
 
 ## 🎨 Component Highlights
 

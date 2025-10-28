@@ -57,18 +57,19 @@ const Header: React.FC = () => {
           {/* Right section */}
           <div className="flex items-center space-x-4">
             {/* Search - Hidden on mobile */}
-            <button className="hidden md:block p-2 text-gray-600 hover:text-primary-500">
+            <button className="hidden md:block p-2 text-gray-600 hover:text-primary-500" title="Search">
               <Search size={20} />
             </button>
 
             {/* User Account */}
-            <button className="p-2 text-gray-600 hover:text-primary-500">
+            <button className="p-2 text-gray-600 hover:text-primary-500" title="Account">
               <User size={20} />
             </button>
 
             {/* Cart */}
             <button
               onClick={toggleCart}
+              title="Open cart"
               className="relative p-2 text-gray-600 hover:text-primary-500"
             >
               <ShoppingCart size={20} />

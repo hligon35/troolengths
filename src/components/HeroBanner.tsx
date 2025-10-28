@@ -110,6 +110,7 @@ const HeroBanner: React.FC = () => {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
+        title="Previous slide"
         className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white transition-all"
       >
         <ChevronLeft size={24} />
@@ -117,6 +118,7 @@ const HeroBanner: React.FC = () => {
       
       <button
         onClick={nextSlide}
+        title="Next slide"
         className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white transition-all"
       >
         <ChevronRight size={24} />
@@ -128,6 +130,7 @@ const HeroBanner: React.FC = () => {
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
+            title={`Go to slide ${index + 1}`}
             className={`w-3 h-3 rounded-full transition-all ${
               index === currentSlide 
                 ? 'bg-white' 
