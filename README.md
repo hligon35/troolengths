@@ -175,6 +175,29 @@ npm run dev
 # Stop the server anytime with Ctrl+C
 ```
 
+## Deploy to GitHub Pages
+
+This repo is preconfigured to deploy to GitHub Pages at:
+
+- Live URL (after first deploy): https://hligon35.github.io/troolengths/
+
+What I set up:
+- Vite `base` set to `/troolengths/` so assets resolve under the Pages path
+- React Router `basename` bound to Vite base so routes work
+- GitHub Actions workflow at `.github/workflows/deploy.yml`
+- SPA fallback (copies `dist/index.html` to `dist/404.html`) for deep links
+
+Steps to publish:
+1) Push your changes to `main` on GitHub
+2) In the GitHub repo, go to Settings → Pages
+3) Under “Build and deployment”, set Source = “GitHub Actions”
+4) Wait for the `Deploy to GitHub Pages` workflow to finish (Actions tab)
+5) Open https://hligon35.github.io/troolengths/
+
+Notes:
+- If you change the repository name, update `base` in `vite.config.ts`
+- If you move to a custom domain, remove the `base` or set it to `'/'`
+
 ## 🎨 Component Highlights
 
 ### Header Component
