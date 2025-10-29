@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   slug: string;
-  category: 'wigs' | 'bundles' | 'closures' | 'colored-wigs';
+  category: string; // category slug (e.g., 'wigs', 'bundles', 'closures', or dynamically inferred)
   price: number;
   salePrice?: number;
   images: string[];

@@ -1,18 +1,51 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Search, User } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
+import { useCatalog } from '@/hooks/useCatalog';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getItemCount, toggleCart } = useCartStore();
 
-  const navigation = [
-    { name: 'Wigs', href: '/category/wigs' },
-    { name: 'Bundles', href: '/category/bundles' },
-    { name: 'Closures', href: '/category/closures' },
-    { name: 'Sale', href: '/sale', className: 'text-accent-coral font-semibold' },
-  ];
+  const { products, loading } = useCatalog();
+  const navigation = useMemo(() => {
+    // Default links while loading
+    if (!products || loading) {
+      return [
+        { name: 'All', href: '/category/all' },
+        { name: 'Wigs', href: '/category/wigs' },
+        { name: 'Bundles', href: '/category/bundles' },
+        { name: 'Closures', href: '/category/closures' },
+      ];
+    }
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const key = (p.category || 'uncategorized').toLowerCase();
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    // Preferred order for known categories
+    const preferred = ['wigs', 'bundles', 'closures'];
+    const preferredItems = preferred
+      .filter((k) => counts.has(k))
+      .map((k) => ({ slug: k, count: counts.get(k)! }));
+    // Rest of categories alphabetically
+    const rest = Array.from(counts.entries())
+      .filter(([k]) => !preferred.includes(k))
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([slug, count]) => ({ slug, count }));
+    const final = [...preferredItems, ...rest];
+    // Build links (cap to top 8 to avoid overflow)
+    const links = final.slice(0, 8).map(({ slug }) => ({
+      name: slug
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' '),
+      href: `/category/${slug}`,
+    }));
+    // Always include All first
+    return [{ name: 'All', href: '/category/all' }, ...links];
+  }, [products, loading]);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
@@ -45,9 +78,7 @@ const Header: React.FC = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-gray-700 hover:text-primary-500 font-medium transition-colors ${
-                  item.className || ''
-                }`}
+                className={`text-gray-700 hover:text-primary-500 font-medium transition-colors`}
               >
                 {item.name}
               </Link>
@@ -103,9 +134,7 @@ const Header: React.FC = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-500 ${
-                    item.className || ''
-                  }`}
+                  className={`block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-500`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}

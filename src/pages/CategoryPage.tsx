@@ -5,19 +5,20 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { useCatalog } from '@/hooks/useCatalog';
-import { filterOptions } from '@/data/mockData';
+// Dynamic filter options will be computed from the loaded products
 import { Product } from '@/types';
 import { useCartStore } from '@/store/cartStore';
 
 const CategoryPage: React.FC = () => {
   const { category } = useParams<{ category: string }>();
+  const selectedCategory = category ?? 'all';
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('featured');
   type FilterKey = 'lengths' | 'textures' | 'colors';
 
   const [filters, setFilters] = useState({
-    priceRange: [0, 500] as [number, number],
+    priceRange: [0, 0] as [number, number],
     lengths: [] as string[],
     textures: [] as string[],
     colors: [] as string[],
@@ -25,12 +26,22 @@ const CategoryPage: React.FC = () => {
 
   const { addItem } = useCartStore();
   const { products, loading, error } = useCatalog();
+  // Extra safety: dedupe products by slug in the view layer as well
+  const productList = useMemo(() => {
+    const seen = new Set<string>();
+    return (products || []).filter(p => {
+      const key = (p.slug || p.id).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [products]);
 
   // Filter products based on category and filters
   const filteredProducts = useMemo(() => {
-    const list = products || [];
+  const list = productList || [];
     let filtered = list.filter(product => 
-      category === 'all' || product.category === category
+      selectedCategory === 'all' || product.category === selectedCategory
     );
 
     // Apply price filter
@@ -77,7 +88,51 @@ const CategoryPage: React.FC = () => {
       default:
         return filtered;
     }
-  }, [category, filters, sortBy, products]);
+  }, [selectedCategory, filters, sortBy, productList]);
+
+  // Compute dynamic filter options and price bounds from the loaded products
+  const computedOptions = useMemo(() => {
+    const lengths = new Set<string>();
+    const textures = new Set<string>();
+    const colors = new Set<string>();
+    let minPrice = Number.POSITIVE_INFINITY;
+    let maxPrice = 0;
+    for (const p of productList) {
+      const price = p.salePrice || p.price;
+      if (price < minPrice) minPrice = price;
+      if (price > maxPrice) maxPrice = price;
+      for (const v of p.variants) {
+        if (v.length) lengths.add(v.length);
+        if (v.texture) textures.add(v.texture);
+        if (v.color) colors.add(v.color);
+      }
+    }
+    // Normalize if no products
+    if (!isFinite(minPrice)) minPrice = 0;
+    if (!isFinite(maxPrice) || maxPrice < minPrice) maxPrice = minPrice;
+    // Sort options
+    const sortByNumericInches = (a: string, b: string) => {
+      const ax = parseInt(a.replace(/[^0-9]/g, '') || '0', 10);
+      const bx = parseInt(b.replace(/[^0-9]/g, '') || '0', 10);
+      return ax - bx;
+    };
+    return {
+      lengths: Array.from(lengths).sort(sortByNumericInches),
+      textures: Array.from(textures).sort((a, b) => a.localeCompare(b)),
+      colors: Array.from(colors).sort((a, b) => a.localeCompare(b)),
+      priceRange: [Math.floor(minPrice), Math.ceil(maxPrice)] as [number, number],
+    };
+  }, [productList]);
+
+  // When options change (e.g., after data loads), sync the price range bounds if unset
+  React.useEffect(() => {
+    if (computedOptions.priceRange[1] !== 0 && filters.priceRange[1] === 0) {
+      setFilters((prev) => ({
+        ...prev,
+        priceRange: [computedOptions.priceRange[0], computedOptions.priceRange[1]],
+      }));
+    }
+  }, [computedOptions, filters.priceRange]);
 
   const handleFilterChange = (filterType: FilterKey, value: string) => {
     setFilters(prev => ({
@@ -91,13 +146,12 @@ const CategoryPage: React.FC = () => {
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 
   const CategoryTitle = () => {
-    const titles: Record<string, string> = {
-      'wigs': 'Premium Wigs Collection',
-      'bundles': 'Hair Bundles & Weaves',
-      'closures': 'Lace Closures & Frontals',
-      'colored-wigs': 'Colored Wigs Collection',
-    };
-    return titles[category || ''] || 'All Products';
+    if (selectedCategory === 'all') return 'All Products';
+    const pretty = (selectedCategory || '')
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    return pretty || 'All Products';
   };
 
   const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
@@ -230,8 +284,8 @@ const CategoryPage: React.FC = () => {
                 <div className="space-y-2">
                   <input
                     type="range"
-                    min="0"
-                    max="500"
+                    min={computedOptions.priceRange[0]}
+                    max={computedOptions.priceRange[1]}
                     value={filters.priceRange[1]}
                     onChange={(e) => setFilters(prev => ({
                       ...prev,
@@ -241,8 +295,8 @@ const CategoryPage: React.FC = () => {
                     aria-label="Maximum price"
                   />
                   <div className="flex justify-between text-sm text-gray-500">
-                    <span>${filters.priceRange[0]}</span>
-                    <span>${filters.priceRange[1]}</span>
+                    <span>${computedOptions.priceRange[0]}</span>
+                    <span>${filters.priceRange[1] || computedOptions.priceRange[1]}</span>
                   </div>
                 </div>
               </div>
@@ -251,7 +305,7 @@ const CategoryPage: React.FC = () => {
               <div className="mb-6">
                 <h4 className="font-medium text-gray-700 mb-2">Length</h4>
                 <div className="space-y-2">
-                  {filterOptions.lengths.map(length => (
+                  {computedOptions.lengths.map(length => (
                     <label key={length} className="flex items-center">
                       <input
                         type="checkbox"
@@ -269,7 +323,7 @@ const CategoryPage: React.FC = () => {
               <div className="mb-6">
                 <h4 className="font-medium text-gray-700 mb-2">Texture</h4>
                 <div className="space-y-2">
-                  {filterOptions.textures.map(texture => (
+                  {computedOptions.textures.map(texture => (
                     <label key={texture} className="flex items-center">
                       <input
                         type="checkbox"
@@ -287,7 +341,7 @@ const CategoryPage: React.FC = () => {
               <div className="mb-6">
                 <h4 className="font-medium text-gray-700 mb-2">Color</h4>
                 <div className="space-y-2">
-                  {filterOptions.colors.map(color => (
+                  {computedOptions.colors.map(color => (
                     <label key={color} className="flex items-center">
                       <input
                         type="checkbox"
