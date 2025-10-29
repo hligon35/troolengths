@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
 import CategoryPage from '@/pages/CategoryPage';
 import ProductDetailPage from '@/pages/ProductDetailPage';
+import SuccessPage from '@/pages/SuccessPage';
+import CancelPage from '@/pages/CancelPage';
 
 const App: React.FC = () => {
   // Use Vite's base (from vite.config.ts) so routes work on GitHub Pages
@@ -16,6 +18,8 @@ const App: React.FC = () => {
           <Route path="/category/:category" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetailPage />} />
           <Route path="/sale" element={<CategoryPage />} />
+          <Route path="/success" element={<SuccessPage />} />
+          <Route path="/canceled" element={<CancelPage />} />
           {/* Add more routes as needed */}
         </Routes>
       </div>

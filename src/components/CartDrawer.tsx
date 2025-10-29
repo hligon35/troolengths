@@ -1,6 +1,9 @@
 import React from 'react';
 import { X, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
+import { getStripe } from '@/lib/stripe';
+import { STRIPE_PRICE_BY_SLUG } from '@/data/stripePrices';
+import { BASE_URL } from '@/lib/base';
 
 const CartDrawer: React.FC = () => {
   const { 
@@ -15,6 +18,50 @@ const CartDrawer: React.FC = () => {
   if (!isOpen) return null;
 
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+
+  const handleStripeCheckout = async () => {
+    const stripe = await getStripe();
+    if (!stripe) {
+      alert('Stripe is not configured. Please set VITE_STRIPE_PUBLISHABLE_KEY.');
+      return;
+    }
+
+    // Build line items using Stripe price IDs mapped by product slug
+    const lineItems: Array<{ price: string; quantity: number }> = [];
+    const missing: string[] = [];
+    for (const it of items) {
+      const slug = it.product.slug;
+      const priceId = STRIPE_PRICE_BY_SLUG[slug];
+      if (!priceId) {
+        missing.push(slug);
+        continue;
+      }
+      lineItems.push({ price: priceId, quantity: it.quantity });
+    }
+    if (lineItems.length === 0) {
+      alert(
+        missing.length
+          ? `These items aren’t configured for checkout yet:\n${missing.join(', ')}`
+          : 'Your cart is empty.'
+      );
+      return;
+    }
+
+    const origin = window.location.origin;
+    const successUrl = `${origin}${BASE_URL}success`;
+    const cancelUrl = `${origin}${BASE_URL}`;
+
+    const { error } = await stripe.redirectToCheckout({
+      lineItems,
+      mode: 'payment',
+      successUrl,
+      cancelUrl,
+    });
+    if (error) {
+      console.error(error.message);
+      alert(error.message);
+    }
+  };
 
   return (
     <>
@@ -128,7 +175,7 @@ const CartDrawer: React.FC = () => {
 
               {/* Checkout Buttons */}
               <div className="space-y-2">
-                <button className="w-full btn-primary">
+                <button className="w-full btn-primary" onClick={handleStripeCheckout}>
                   Checkout
                 </button>
                 <button className="w-full btn-accent-peach">
