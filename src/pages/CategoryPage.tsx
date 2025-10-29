@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { useCatalog } from '@/hooks/useCatalog';
+import { BASE_URL } from '@/lib/base';
 // Dynamic filter options will be computed from the loaded products
 import { Product } from '@/types';
 import { useCartStore } from '@/store/cartStore';
@@ -168,7 +169,7 @@ const CategoryPage: React.FC = () => {
         <div className="relative overflow-hidden rounded-t-lg">
           <Link to={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
             <img
-              src={product.images[0] || '/favicon.svg'}
+              src={product.images[0] || `${BASE_URL}favicon.svg`}
               alt={product.name}
               className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
             />

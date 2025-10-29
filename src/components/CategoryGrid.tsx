@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCatalog } from '@/hooks/useCatalog';
+import { BASE_URL } from '@/lib/base';
 
 const CategoryGrid: React.FC = () => {
   const { products, loading } = useCatalog();
@@ -27,8 +28,8 @@ const CategoryGrid: React.FC = () => {
     const final = [...preferredItems, ...rest].slice(0, 8);
     // For each category, pick a representative product image
     const result = final.map(({ slug, count }) => {
-      const prod = list.find((p) => p.category.toLowerCase() === slug && p.images && p.images.length > 0);
-      const image = prod?.images?.[0] || '/favicon.svg';
+  const prod = list.find((p) => p.category.toLowerCase() === slug && p.images && p.images.length > 0);
+  const image = prod?.images?.[0] || `${BASE_URL}favicon.svg`;
       const name = slug
         .split('-')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
